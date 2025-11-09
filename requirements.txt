@@ -1,0 +1,7 @@
+torch
+torchvision
+numpy
+matplotlib
+fastapi
+uvicorn[standard]
+jinja2

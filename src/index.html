@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Entrenamiento IA (Real-Time)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* (Estilos CSS sin cambios... excepto el contenedor del gráfico) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        select, input[type="number"], button {
+            width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;
+        }
+        button { background-color: #007bff; color: white; font-weight: bold; cursor: pointer; }
+        button:disabled { background-color: #aaa; }
+        #layers-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        #layers-container input { width: 120px; text-align: center; }
+        .slider-group { display: flex; align-items: center; gap: 10px; }
+        
+        /* Contenedores de resultados en tiempo real */
+        #results { margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
+        #chart-container { width: 100%; margin-bottom: 15px; }
+        #log-area {
+            width: 100%; height: 150px; background-color: #282c34; color: #abb2bf;
+            border-radius: 4px; padding: 10px; box-sizing: border-box;
+            overflow-y: scroll; font-family: monospace;
+        }
+        #final-result { margin-top: 15px; }
+        #final-result img { max-width: 100%; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Panel de Entrenamiento (Real-Time)</h2>
+        <form id="train-form">
+            <div class="form-group">
+                <label for="model_type"> Tipo de Modelo</label>
+                <select id="model_type" name="model_type">
+                    <option value="SimpleNN">SimpleNN (MLP)</option>
+                    <option value="ConvNN">ConvNN (Convolucional)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="optimizer"> Optimizador</label>
+                <select id="optimizer" name="optimizer">
+                    <option value="Adam">Adam</option>
+                    <option value="SGD">SGD (con momentum)</option>
+                    <option value="RMSprop">RMSprop</option>
+                    <option value="AdamW">AdamW</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="lr"> Tasa de Aprendizaje (Learning Rate): <span id="lr-value">0.001</span></label>
+                <div class="slider-group">
+                    <span>1e-5</span>
+                    <input type="range" id="lr" name="lr" min="0.00001" max="0.01" step="0.00001" value="0.001">
+                    <span>0.01</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="num_epochs"> Número de Épocas</label>
+                <input type="number" id="num_epochs" name="num_epochs" min="1" max="50" value="10">
+            </div>
+
+            <div class="form-group">
+                <label for="batch_size"> Tamaño de Batch (Batch Size)</label>
+                <select id="batch_size" name="batch_size">
+                    <option value="32">32 (Rápido)</option>
+                    <option value="64" selected>64 (Estándar)</option>
+                    <option value="128">128 (Lento)</option>
+                </select>
+                <small>Afecta la velocidad y la memoria. Valores más altos pueden requerir más VRAM.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="num_layers"> N° de Capas Ocultas (Lineales)</label>
+                <input type="number" id="num_layers" name="num_layers" min="1" max="10" value="2">
+            </div>
+            <div class="form-group">
+                <label> Configuración de Capas (Neuronas)</label>
+                <div id="layers-container"></div>
+            </div>
+            <button type="submit" id="submit-btn">Iniciar Entrenamiento</button>
+        </form>
+
+        <div id="results">
+            <div id="chart-container">
+                <canvas id="loss-chart"></canvas>
+            </div>
+            <pre id="log-area"></pre>
+            <div id="final-result">
+                <p>Listo para entrenar.</p>
+            </div>
+        </div>
+    </div>
+
+<script src="/main.js" defer></script>
+
+</body>
+</html>

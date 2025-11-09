@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*venv*/
+
+# Datos (MNIST dataset)
+src/data/
+
+# Artefactos generados (Modelos y Gráficos)
+# Ignora todo en 'models' y 'results'
+models/
+results/
+
+# PERO, no ignores el archivo de metadatos ni los .gitkeep
+!models/models_metadata.json
+!models/.gitkeep
+!results/.gitkeep
+
+# Archivos de OS
+.DS_Store
