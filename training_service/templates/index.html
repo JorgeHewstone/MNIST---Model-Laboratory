@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Panel (Real-Time)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root{
+            --bg:#f4f7f6;--panel:#fff;--text:#111827;--muted:#6b7280;
+            --primary:#007bff;--shadow:rgba(0,0,0,0.1)
+        }
+        body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; margin:0; background-color:var(--bg); color:var(--text); }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky; top: 0; z-index: 100;
+            background:#ffffffcc; backdrop-filter: blur(6px);
+            border-bottom:1px solid #e5e7eb;
+        }
+        .topbar-inner {
+            max-width: 900px; margin:0 auto; padding:10px 16px;
+            display:flex; align-items:center; gap:12px;
+        }
+        .brand { font-weight:700; letter-spacing:0.2px; color:#111827; margin-right:10px; }
+        .link-btn {
+            display:inline-block; padding:8px 12px; border-radius:8px; text-decoration:none;
+            font-weight:600; border:1px solid #d0d7de; color:#0f172a; background:#fff;
+            transition: transform .05s ease, background .2s ease;
+        }
+        .link-btn:hover{ background:#f3f4f6; }
+        .link-btn:active{ transform: translateY(1px); }
+
+        /* Main container */
+        .page { display:grid; justify-content:center; padding:20px 16px 40px 16px; }
+        .container { max-width:600px; margin:auto; background:var(--panel); padding:20px; border-radius:8px; box-shadow:0 2px 10px var(--shadow); }
+
+        .form-group { margin-bottom:15px; }
+        label { display:block; font-weight:bold; margin-bottom:5px; }
+        select, input[type="number"], button {
+            width:100%; padding:8px; border-radius:4px; border:1px solid #ccc; box-sizing:border-box;
+        }
+        button { background-color:var(--primary); color:white; font-weight:bold; cursor:pointer; }
+        button:disabled { background-color:#aaa; cursor:default; }
+
+        #layers-container { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+        #layers-container input { width:120px; text-align:center; }
+
+        /* Real-time results */
+        #results { margin-top:20px; padding-top:20px; border-top:2px solid #eee; }
+        #chart-container { width:100%; margin-bottom:15px; }
+        #loss-chart { width:100%; height:260px; }
+        #log-area {
+            width:100%; height:150px; background-color:#282c34; color:#abb2bf;
+            border-radius:4px; padding:10px; box-sizing:border-box;
+            overflow-y:scroll; font-family:monospace;
+        }
+        #final-result { margin-top:15px; }
+        #final-result img { max-width:100%; border-radius:4px; }
+        small { color:var(--muted); }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-inner">
+            <span class="brand">MNIST Lab</span>
+            <a class="link-btn" href="http://127.0.0.1:8001/">Go to the test module</a>
+        </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page">
+        <div class="container">
+            <h2>Training Panel (Real-Time)</h2>
+            <form id="train-form">
+                <div class="form-group">
+                    <label for="model_type">Model Type</label>
+                    <select id="model_type" name="model_type">
+                        <option value="SimpleNN">SimpleNN (MLP)</option>
+                        <option value="ConvNN">ConvNN (Convolutional)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="optimizer">Optimizer</label>
+                    <select id="optimizer" name="optimizer">
+                        <option value="Adam">Adam</option>
+                        <option value="SGD">SGD (with momentum)</option>
+                        <option value="RMSprop">RMSprop</option>
+                        <option value="AdamW">AdamW</option>
+                    </select>
+                </div>
+
+                <!-- LR RANGE DROPDOWN (replaces slider) -->
+                <div class="form-group">
+                    <label for="lr_range">Learning Rate Range</label>
+                    <select id="lr_range" name="lr_range">
+                        <option value="Low">Low (1e-5 to 1e-4)</option>
+                        <option value="Medium Low">Medium Low (1e-4 to 5e-4)</option>
+                        <option value="Medium High">Medium High (5e-4 to 1e-3)</option>
+                        <option value="High" selected>High (1e-3 to 1e-2)</option>
+                    </select>
+                    <small>We’ll use the midpoint of the selected range as the learning rate.</small>
+                </div>
+                <!-- Dropout toggle -->
+                <div class="form-group">
+                <label>
+                    <input type="checkbox" id="use_dropout" name="use_dropout">
+                    Use dropout (p = 0.3)
+                </label>
+                <small>Regularization to reduce overfitting. Applies Dropout/Dropout2d during training only.</small>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="num_epochs">Epochs</label>
+                    <input type="number" id="num_epochs" name="num_epochs" min="1" max="50" value="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="batch_size">Batch Size</label>
+                    <select id="batch_size" name="batch_size">
+                        <option value="32">32 (Fast)</option>
+                        <option value="64" selected>64 (Standard)</option>
+                        <option value="128">128 (Slow)</option>
+                    </select>
+                    <small>Affects speed and memory; higher values may require more VRAM.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="num_layers"># Hidden Linear Layers</label>
+                    <input type="number" id="num_layers" name="num_layers" min="1" max="10" value="2">
+                </div>
+
+                <div class="form-group">
+                    <label>Layer Configuration (neurons)</label>
+                    <div id="layers-container"></div>
+                </div>
+
+                <button type="submit" id="submit-btn">Start Training</button>
+                <button type="button" id="abort-btn" style="margin-top:8px;background:#dc2626" disabled>Abort Training</button>
+            </form>
+
+            <div id="results">
+                <div id="chart-container">
+                    <canvas id="loss-chart"></canvas>
+                </div>
+                <pre id="log-area"></pre>
+                <div id="final-result">
+                    <p>Ready to train.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/main.js" defer></script>
+
+</body>
+</html>

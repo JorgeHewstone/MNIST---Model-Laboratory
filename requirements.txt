@@ -1,7 +1,15 @@
-torch
-torchvision
-numpy
-matplotlib
-fastapi
-uvicorn[standard]
-jinja2
+# Core ML
+torch>=2.2
+torchvision>=0.17
+
+# Numerics & plotting
+numpy>=1.26
+matplotlib>=3.8
+
+# Web apps (FastAPI + Starlette stack)
+fastapi>=0.110
+uvicorn[standard]>=0.24
+jinja2>=3.1
+
+# Image I/O for inference
+pillow>=10.0
