@@ -286,4 +286,4 @@ python scripts/run_dev.py
 
 ## License
 
-MIT (or your preferred license).
+MIT.
